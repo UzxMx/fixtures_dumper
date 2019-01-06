@@ -67,8 +67,18 @@ module FixturesDumper
 
     def data_to_dump_for(table_name)
       data_to_dump = []
+      begin
+        model = table_name.singularize.camelize.constantize
+        enums = model.defined_enums        
+      rescue Exception => e
+        puts e.message
+      end
       data_from_table(table_name).each do |record|
-        data_to_dump << { "#{table_name.singularize}_#{record.id}" => record.attributes }
+        attrs = record.attributes
+        enums.each do |key, val|
+          attrs[key] = val[attrs[key]]
+        end
+        data_to_dump << { "#{table_name.singularize}_#{record.id}" => attrs }
       end
       data_to_dump
     end
